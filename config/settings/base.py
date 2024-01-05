@@ -15,3 +15,5 @@ POSTGRES_DATABASE_NAME = os.environ.get('POSTGRES_DATABASE_NAME', 'library')
 POSTGRES_SCHEMA = os.environ.get('POSTGRES_SCHEMA', 'library')
 
 DATETIME_FORMAT = os.environ.get('DATETIME_FORMAT', '%d.%m.%Y %H:%M')
+DATE_FORMAT = os.environ.get('DATE_FORMAT', '%d.%m.%Y')
+MAX_PAGE_SIZE = int(os.environ.get('MAX_PAGE_SIZE', '100'))
