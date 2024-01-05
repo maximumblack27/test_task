@@ -1,0 +1,68 @@
+*.log
+
+*.py[codt]
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Sphinx
+docs/_build
+
+.webassets-cache
+
+# Virtualenvs
+env
+env*
+venv
+
+# intellij
+*.ipr
+*.iml
+*.iws
+
+# collect static output directory
+config/assets/
+config/static/
+
+.idea
+env.sh
+
+# secure deployment config
+deployments/config.yaml
+.env
+
+dags/*
+!dags/.gitkeep
+!migrations/env.py
+celerybeat-schedule
+storage/*
+
+test.py
+test.txt
+
+/tmp
+tmp
+./tmp
