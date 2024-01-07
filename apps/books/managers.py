@@ -1,10 +1,11 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, desc, asc, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from apps.books.models import BookModel
+from apps.books.utils import get_column_orm
 from apps.core.extensions import provide_session
 
 
@@ -22,10 +23,18 @@ class BookManager:
                             date_end: Optional[date] = None,
                             filter_genre: Optional[list[str]] = None,
                             page_size: Optional[int] = None,
+                            query_string: Optional[str] = None,
+                            sort: Optional[str] = None,
+                            sort_order: Optional[str] = None,
                             page_number: Optional[int] = None,
                             async_session: async_sessionmaker[AsyncSession] = None):
         async with async_session() as session:
             query = select(BookModel)
+
+            if query_string:
+                query_string = query_string.replace('\\', '\\\\').replace('_', '\\_').replace('%', '\\%')
+                query = query.filter(or_(BookModel.name.ilike(f'%{query_string}%'),
+                                         BookModel.author.ilike(f'%{query_string}%')))
 
             if filter_name:
                 query = query.where(BookModel.name.in_(filter_name))
@@ -42,7 +51,15 @@ class BookManager:
             if date_end:
                 query = query.where(BookModel.date_published <= date_end)
 
-            query = query.order_by(BookModel.id).offset(page_number*page_size).limit(page_size)
+            if sort:
+                order = asc if sort_order == 'asc' else desc
+                column = get_column_orm(BookModel, sort)
+
+                query = query.order_by(order(column))
+            else:
+                query = query.order_by(BookModel.id)
+
+            query = query.offset(page_number*page_size).limit(page_size)
 
             result = await session.execute(query)
             books_list = result.scalars()
