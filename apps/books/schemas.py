@@ -1,5 +1,5 @@
-from aiohttp.web_exceptions import HTTPUnprocessableEntity
-from marshmallow import Schema, fields, validates_schema
+from aiohttp.web_exceptions import HTTPUnprocessableEntity, HTTPNotFound
+from marshmallow import Schema, fields, validates_schema, pre_dump
 from marshmallow.validate import OneOf
 
 from apps.books.enums import BookColumnEnum
@@ -13,6 +13,13 @@ class BookSchema(Schema):
     author = fields.String()
     date_published = fields.Date(format=DATE_FORMAT)
     genre = fields.String()
+
+    @pre_dump
+    def pre_dump(self, data, *args, **kwargs):
+        if not data:
+            raise HTTPNotFound(reason='book not found')
+
+        return data
 
     class Meta:
         model = BookModel
@@ -41,9 +48,9 @@ class BookQuerySchema(Schema):
 
 
 class CreateBookSchema(Schema):
-    name = fields.String(required=True)
-    author = fields.String(required=True)
-    date_published = fields.Date(required=True, format=DATE_FORMAT)
+    name = fields.String()
+    author = fields.String()
+    date_published = fields.Date(format=DATE_FORMAT)
     genre = fields.String(missing=None)
 
     @validates_schema

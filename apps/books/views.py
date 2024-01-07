@@ -1,6 +1,7 @@
 import os
+import time
 
-from aiohttp import web
+from aiohttp import web, BodyPartReader
 
 from apps.books.managers import BookManager
 from apps.books.schemas import BookSchema, BookQuerySchema, PageParamsSchema, CreateBookSchema
@@ -41,27 +42,21 @@ async def get_book(request):
 @book_routes.post('/book/upload/')
 async def create_book(request):
     reader = await request.multipart()
-    field = await reader.next()
-    request_data = await request.post()
+    field: BodyPartReader = await reader.next()
 
-    schema = CreateBookSchema()
-    args = schema.load(request_data)
-
-    file_path = '{path}/storage/{name}_{author}_{date}.pdf'
-    file_path = file_path.format(
-        path=os.getcwd(),
-        name=args['name'],
-        author=args['author'],
-        date=args['date_published'].strftime(settings.UPLOAD_DATE_FORMAT),
-    )
-
-    with open(file_path, 'wb') as f:
+    with open(f'{settings.UPLOAD_FILE_PATH}{time.time_ns()}.pdf', 'wb') as f:
         while True:
             chunk = await field.read_chunk(settings.CHUNK_SIZE)
             if not chunk:
                 break
             f.write(chunk)
-        manager = BookManager()
-        await manager.add_book(**args)
+
+    request_data = await request.post()
+
+    schema = CreateBookSchema()
+    args = schema.load(request_data)
+
+    manager = BookManager()
+    await manager.add_book(**args)
 
     return web.json_response(data={"book_id": manager.instance.id}, status=201)
