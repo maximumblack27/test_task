@@ -59,9 +59,34 @@ class BookManager:
             else:
                 query = query.order_by(BookModel.id)
 
-            query = query.offset(page_number*page_size).limit(page_size)
+            # query = query.offset(page_number*page_size).limit(page_size)
 
             result = await session.execute(query)
             books_list = result.scalars()
 
             return books_list
+
+    @classmethod
+    @provide_session
+    async def get_book(cls,
+                       book_id: int,
+                       async_session: async_sessionmaker[AsyncSession]):
+        async with async_session() as session:
+            query = select(BookModel).where(BookModel.id == book_id)
+
+            result = await session.execute(query)
+            book = result.scalar()
+
+            return book
+
+    @provide_session
+    async def add_book(self,
+                       name: str,
+                       author: str,
+                       date_published: date,
+                       genre: Optional[str],
+                       async_session: async_sessionmaker[AsyncSession] = None):
+        async with async_session() as session:
+            async with session.begin():
+                self.instance = BookModel(name=name, author=author, date_published=date_published, genre=genre)
+                session.add(self.instance)

@@ -1,16 +1,17 @@
+from aiohttp.web_exceptions import HTTPUnprocessableEntity
 from marshmallow import Schema, fields, validates_schema
 from marshmallow.validate import OneOf
 
 from apps.books.enums import BookColumnEnum
 from apps.books.models import BookModel
-from config.settings import DATETIME_FORMAT, DATE_FORMAT
+from config.settings import DATE_FORMAT
 
 
 class BookSchema(Schema):
     id = fields.Integer()
     name = fields.String()
     author = fields.String()
-    date_published = fields.DateTime(format=DATETIME_FORMAT)
+    date_published = fields.Date(format=DATE_FORMAT)
     genre = fields.String()
 
     class Meta:
@@ -37,3 +38,17 @@ class BookQuerySchema(Schema):
     query_string = fields.Str(missing=None, data_key='query')
     sort = fields.Str(missing=None, validate=OneOf(choices=BookColumnEnum.get_values()))
     sort_order = fields.Str(missing=None, validate=OneOf(choices=['asc', 'desc', 'ASC', 'DESC']))
+
+
+class CreateBookSchema(Schema):
+    name = fields.String(required=True)
+    author = fields.String(required=True)
+    date_published = fields.Date(required=True, format=DATE_FORMAT)
+    genre = fields.String(missing=None)
+
+    @validates_schema
+    def validate_schema(self, data, *args, **kwargs):
+        if not data.get('name') or not data.get('author') or not data.get('date_published'):
+            raise HTTPUnprocessableEntity(reason='"name", "author" and "date_published" must be filled')
+
+        return data

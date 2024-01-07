@@ -1,4 +1,5 @@
 from typing import Optional, Type, Any
+from aiohttp.web_exceptions import HTTPUnprocessableEntity
 
 from apps.core.database import Base
 from apps.core.exceptions import OrmValidationError
@@ -21,3 +22,11 @@ def get_column_orm(model_object: Type[Base], column: str):
     if not column:
         raise OrmValidationError(f'{column} not exists')
     return column_orm
+
+
+def get_book_id(request):
+    book_id = request.match_info.get('book_id', None)
+    if book_id and book_id.isdigit() and int(book_id) > 0:
+        return int(book_id)
+    else:
+        raise HTTPUnprocessableEntity(reason='book_id must be a positive integer')
