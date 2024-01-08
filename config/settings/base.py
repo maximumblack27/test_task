@@ -11,7 +11,7 @@ POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
 POSTGRES_USER = os.environ.get('POSTGRES_USER', 'postgres')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'postgres')
-POSTGRES_DATABASE_NAME = os.environ.get('POSTGRES_DATABASE_NAME', 'library')
+POSTGRES_DB = os.environ.get('POSTGRES_DB', 'library')
 POSTGRES_SCHEMA = os.environ.get('POSTGRES_SCHEMA', 'library')
 
 DATETIME_FORMAT = os.environ.get('DATETIME_FORMAT', '%d.%m.%Y %H:%M')

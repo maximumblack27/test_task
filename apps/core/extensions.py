@@ -12,7 +12,7 @@ pg_url = DNS.format(
     pg_password=settings.POSTGRES_PASSWORD,
     pg_host=settings.POSTGRES_HOST,
     pg_port=settings.POSTGRES_PORT,
-    pg_database=settings.POSTGRES_DATABASE_NAME,
+    pg_database=settings.POSTGRES_DB,
 )
 
 engine = create_async_engine(pg_url, echo=True)
@@ -20,13 +20,13 @@ engine = create_async_engine(pg_url, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-async def pg_context(app):
-    app['db'] = engine
-
-    yield
-
-    app['db'].close()
-    await app['db'].wait_closed()
+# async def pg_context(app):
+#     app['db'] = engine
+#
+#     yield
+#
+#     app['db'].close()
+#     await app['db'].wait_closed()
 
 
 def provide_session(*args, commit_after: bool = False):

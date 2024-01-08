@@ -5,8 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase
 
+metadata = MetaData()
+Base = declarative_base(metadata=metadata)
 
-class BaseModel(AsyncAttrs, DeclarativeBase):
+
+class BaseModel(AsyncAttrs, Base):
     __abstract__ = True
 
     def __repr__(self):
@@ -19,6 +22,3 @@ class BaseModel(AsyncAttrs, DeclarativeBase):
     def repr(self):
         return f'<{self.__class__.__name__}>'
 
-
-metadata = MetaData()
-Base = declarative_base(cls=BaseModel, metadata=metadata)

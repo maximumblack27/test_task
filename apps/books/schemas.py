@@ -3,16 +3,16 @@ from marshmallow import Schema, fields, validates_schema, pre_dump
 from marshmallow.validate import OneOf
 
 from apps.books.enums import BookColumnEnum
-from apps.books.models import BookModel
+from apps.books.models import BookModel, BookFileModel
 from config.settings import DATE_FORMAT
 
 
 class BookSchema(Schema):
-    id = fields.Integer()
-    name = fields.String()
-    author = fields.String()
+    id = fields.Int(dump_only=True)
+    name = fields.Str()
+    author = fields.Str()
     date_published = fields.Date(format=DATE_FORMAT)
-    genre = fields.String()
+    genre = fields.Str()
 
     @pre_dump
     def pre_dump(self, data, *args, **kwargs):
@@ -48,14 +48,26 @@ class BookQuerySchema(Schema):
 
 
 class CreateBookSchema(Schema):
-    name = fields.String()
-    author = fields.String()
+    name = fields.Str()
+    author = fields.Str()
     date_published = fields.Date(format=DATE_FORMAT)
-    genre = fields.String(missing=None)
+    genre = fields.Str(missing=None)
 
     @validates_schema
     def validate_schema(self, data, *args, **kwargs):
         if not data.get('name') or not data.get('author') or not data.get('date_published'):
             raise HTTPUnprocessableEntity(reason='"name", "author" and "date_published" must be filled')
+
+        return data
+
+
+class BookFileSchema(Schema):
+    name = fields.Str()
+    file_name = fields.Str()
+
+    @pre_dump
+    def pre_dump(self, data, *args, **kwargs):
+        if not data:
+            raise HTTPNotFound(reason='book file not found')
 
         return data

@@ -7,7 +7,7 @@ from apps.core.database import Base
 from apps.books.models import BookModel
 from config import settings
 
-_ = BookModel
+_ = BookModel()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,7 +18,8 @@ config.set_section_option(section, "POSTGRES_HOST", settings.POSTGRES_HOST)
 config.set_section_option(section, "POSTGRES_PORT", settings.POSTGRES_PORT)
 config.set_section_option(section, "POSTGRES_USER", settings.POSTGRES_USER)
 config.set_section_option(section, "POSTGRES_PASSWORD", settings.POSTGRES_PASSWORD)
-config.set_section_option(section, "POSTGRES_DATABASE_NAME", settings.POSTGRES_DATABASE_NAME)
+config.set_section_option(section, "POSTGRES_DB", settings.POSTGRES_DB)
+config.set_section_option(section, "POSTGRES_SCHEMA", settings.POSTGRES_SCHEMA)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

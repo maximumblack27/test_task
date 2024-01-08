@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy import select, desc, asc, or_
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from apps.books.models import BookModel
+from apps.books.models import BookModel, BookFileModel
 from apps.books.utils import get_column_orm
 from apps.core.extensions import provide_session
 
@@ -84,9 +84,48 @@ class BookManager:
                        name: str,
                        author: str,
                        date_published: date,
-                       genre: Optional[str],
+                       genre: Optional[str] = None,
                        async_session: async_sessionmaker[AsyncSession] = None):
         async with async_session() as session:
             async with session.begin():
-                self.instance = BookModel(name=name, author=author, date_published=date_published, genre=genre)
+                self.instance = BookModel(
+                    name=name, author=author,
+                    date_published=date_published, genre=genre
+                )
                 session.add(self.instance)
+
+
+class BookFileManager:
+
+    def __init__(self, instance: BookFileModel = None):
+        self.instance = instance
+
+    @provide_session
+    async def add_book_file(self,
+                            book_id: int,
+                            file_name: str,
+                            origin_file_name: str,
+                            text: Optional[str] = None,
+                            async_session: async_sessionmaker[AsyncSession] = None):
+        async with async_session() as session:
+            async with session.begin():
+                self.instance = BookFileModel(
+                    book_id=book_id, file_name=file_name,
+                    origin_file_name=origin_file_name, text=text
+                )
+                session.add(self.instance)
+
+    @classmethod
+    @provide_session
+    async def get_file_name(cls,
+                            book_id: str,
+                            async_session: async_sessionmaker[AsyncSession] = None):
+        async with async_session() as session:
+            query = select(BookModel.name.label('name'), BookFileModel.file_name.label('file_name')) \
+                .join(BookModel, BookModel.id == BookFileModel.book_id) \
+                .where(BookModel.id == book_id)
+
+            result = await session.execute(query)
+            book = result.fetchone()
+
+            return book._mapping
