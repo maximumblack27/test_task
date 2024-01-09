@@ -118,7 +118,7 @@ class BookFileManager:
     @classmethod
     @provide_session
     async def get_file_name(cls,
-                            book_id: str,
+                            book_id: int,
                             async_session: async_sessionmaker[AsyncSession] = None):
         async with async_session() as session:
             query = select(BookModel.name.label('name'), BookFileModel.file_name.label('file_name')) \

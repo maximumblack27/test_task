@@ -1,8 +1,6 @@
 import json
 
 from aiohttp import BodyPartReader, web
-from pdf2image import convert_from_path
-from io import BytesIO
 
 from apps.books.managers import BookFileManager, BookManager
 from apps.books.schemas import (BookFileSchema, BookQuerySchema, BookSchema,
@@ -16,7 +14,7 @@ book_routes = web.RouteTableDef()
 
 
 @book_routes.post('/books/')
-async def get_book_list(request: web.Request):
+async def get_book_list(request: web.Request) -> web.Response:
     """
     Handler for retrieving a list of books based on specified filters and pagination.
     Handler is used POST method for exclude errors related on delimiters in a filters.
@@ -66,7 +64,7 @@ async def get_book_list(request: web.Request):
 
 
 @book_routes.get('/books/{book_id}/')
-async def get_book(request: web.Request):
+async def get_book(request: web.Request) -> web.Response:
     """
     Handler for retrieving details of a specific book.
 
@@ -96,7 +94,7 @@ async def get_book(request: web.Request):
 
 
 @book_routes.post('/books/upload/')
-async def upload_book(request: web.Request):
+async def upload_book(request: web.Request) -> web.json_response:
     """
     Handler for uploading a new book along with associated files.
 
@@ -154,7 +152,7 @@ async def upload_book(request: web.Request):
 
 
 @book_routes.get('/books/{book_id}/download/')
-async def download_book(request: web.Request):
+async def download_book(request: web.Request) -> web.StreamResponse:
     """
     Handler for downloading the file associated with a book.
 
@@ -183,7 +181,7 @@ async def download_book(request: web.Request):
 
 
 @book_routes.get('/books/{book_id}/read/{page_number}/')
-async def view_pdf_page(request: web.Request):
+async def view_pdf_page(request: web.Request) -> web.Response:
     """
     Handler for retrieving a specific page of a book in PDF format.
 

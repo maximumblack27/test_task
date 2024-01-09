@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from typing import Any, Optional, Type
 
-import PyPDF2
 from aiofile import async_open
 from aiohttp import web, BodyPartReader
 from marshmallow import ValidationError
@@ -16,7 +15,7 @@ from config import settings
 
 
 def extract_query_param(request: web.Request, param: str,
-                        type_to_cast: Optional[Type] = None, default_value: Any = None):
+                        type_to_cast: Optional[Type] = None, default_value: Any = None) -> Optional[Type]:
     value = request.query.get(param, default_value)
     if not type_to_cast:
         return value
@@ -26,7 +25,7 @@ def extract_query_param(request: web.Request, param: str,
         return default_value
 
 
-def get_column_orm(model_object: Type[DeclarativeMeta], column: str):
+def get_column_orm(model_object: Type[DeclarativeMeta], column: str) -> Any:
     if not isinstance(model_object, DeclarativeMeta):
         raise OrmValidationError(f'{model_object} is not sqlalchemy model')
     column_orm = getattr(model_object, column)
@@ -35,7 +34,7 @@ def get_column_orm(model_object: Type[DeclarativeMeta], column: str):
     return column_orm
 
 
-def get_value_from_request(request: web.Request, value: str):
+def get_value_from_request(request: web.Request, value: str) -> int:
     val = request.match_info.get(value, None)
     if val and val.isdigit() and int(val) > 0:
         return int(val)
@@ -43,11 +42,11 @@ def get_value_from_request(request: web.Request, value: str):
         raise ValidationError(message=f'{value} must be a positive integer', field_name=value)
 
 
-def get_end_date(date: datetime.date):
+def get_end_date(date: datetime.date) -> datetime.date:
     return date + timedelta(days=1)
 
 
-async def download_file(response: web.StreamResponse, file: dict):
+async def download_file(response: web.StreamResponse, file: dict) -> web.StreamResponse:
     try:
         file_path = f'{settings.UPLOAD_FILE_DIRECTORY}{file.get("file_name")}'
         async with async_open(file_path, 'rb') as f:
@@ -63,7 +62,7 @@ async def download_file(response: web.StreamResponse, file: dict):
     return response
 
 
-async def save_file(field: BodyPartReader):
+async def save_file(field: BodyPartReader) -> str:
     file_name = f'{uuid.uuid4()}.pdf'
     file_path = f'{settings.UPLOAD_FILE_DIRECTORY}{file_name}'
     with open(file_path, 'wb') as f:
@@ -76,7 +75,7 @@ async def save_file(field: BodyPartReader):
     return file_name
 
 
-def read_pdf_from_page(file: dict, page_number: int):
+def read_pdf_from_page(file: dict, page_number: int) -> bytes:
     file_path = f'{settings.UPLOAD_FILE_DIRECTORY}{file.get("file_name")}'
     images = convert_from_path(file_path, first_page=page_number, last_page=page_number)
 
