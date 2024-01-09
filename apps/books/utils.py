@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional, Type
 
 from aiofile import async_open
+from aiohttp import web, BodyPartReader
 from marshmallow import ValidationError
 from sqlalchemy.orm import DeclarativeMeta
 
@@ -11,7 +12,8 @@ from apps.core.exceptions import OrmValidationError
 from config import settings
 
 
-def extract_query_param(request, param: str, type_to_cast: Optional[Type] = None, default_value: Any = None):
+def extract_query_param(request: web.Request, param: str,
+                        type_to_cast: Optional[Type] = None, default_value: Any = None):
     value = request.query.get(param, default_value)
     if not type_to_cast:
         return value
@@ -30,7 +32,7 @@ def get_column_orm(model_object: Type[DeclarativeMeta], column: str):
     return column_orm
 
 
-def get_book_id(request):
+def get_book_id(request: web.Request):
     book_id = request.match_info.get('book_id', None)
     if book_id and book_id.isdigit() and int(book_id) > 0:
         return int(book_id)
@@ -42,7 +44,7 @@ def get_end_date(date: datetime.date):
     return date + timedelta(days=1)
 
 
-async def download_file(response, file):
+async def download_file(response: web.StreamResponse, file: dict):
     try:
         file_path = f'{settings.UPLOAD_FILE_DIRECTORY}{file.get("file_name")}'
         async with async_open(file_path, 'rb') as f:
@@ -58,7 +60,7 @@ async def download_file(response, file):
     return response
 
 
-async def save_file(field):
+async def save_file(field: BodyPartReader):
     file_name = f'{uuid.uuid4()}.pdf'
     file_path = f'{settings.UPLOAD_FILE_DIRECTORY}{file_name}'
     with open(file_path, 'wb') as f:
