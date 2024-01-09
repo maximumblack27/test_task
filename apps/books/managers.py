@@ -1,10 +1,10 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy import select, desc, asc, or_
+from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from apps.books.models import BookModel, BookFileModel
+from apps.books.models import BookFileModel, BookModel
 from apps.books.utils import get_column_orm
 from apps.core.extensions import provide_session
 
@@ -57,9 +57,9 @@ class BookManager:
 
                 query = query.order_by(order(column))
             else:
-                query = query.order_by(BookModel.id)
+                query = query.order_by(asc(BookModel.id))
 
-            # query = query.offset(page_number*page_size).limit(page_size)
+            query = query.offset(page_number*page_size).limit(page_size)
 
             result = await session.execute(query)
             books_list = result.scalars()
@@ -128,4 +128,4 @@ class BookFileManager:
             result = await session.execute(query)
             book = result.fetchone()
 
-            return book._mapping
+            return book._mapping if book else None

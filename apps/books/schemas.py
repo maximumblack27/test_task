@@ -1,9 +1,12 @@
-from aiohttp.web_exceptions import HTTPUnprocessableEntity, HTTPNotFound
-from marshmallow import Schema, fields, validates_schema, pre_dump
+from aiohttp.web_exceptions import (HTTPBadRequest, HTTPNotFound,
+                                    HTTPUnprocessableEntity)
+from marshmallow import (Schema, fields, post_load, pre_dump, validates,
+                         validates_schema)
 from marshmallow.validate import OneOf
 
 from apps.books.enums import BookColumnEnum
-from apps.books.models import BookModel, BookFileModel
+from apps.books.models import BookModel
+from apps.books.utils import get_end_date
 from config.settings import DATE_FORMAT
 
 
@@ -46,6 +49,15 @@ class BookQuerySchema(Schema):
     sort = fields.Str(missing=None, validate=OneOf(choices=BookColumnEnum.get_values()))
     sort_order = fields.Str(missing=None, validate=OneOf(choices=['asc', 'desc', 'ASC', 'DESC']))
 
+    @post_load
+    def post_load(self, data, *args, **kwargs):
+        if data.get('date_start'):
+            if not data.get('date_end'):
+                raise HTTPUnprocessableEntity(reason='"date_end" is required with "date_start"')
+            data['date_end'] = get_end_date(data.get('date_end'))
+
+        return data
+
 
 class CreateBookSchema(Schema):
     name = fields.Str()
@@ -71,3 +83,15 @@ class BookFileSchema(Schema):
             raise HTTPNotFound(reason='book file not found')
 
         return data
+
+
+class LoadingFileSchema(Schema):
+    ALLOWED_MIME_TYPES = ('application/pdf',)
+
+    file_headers = fields.Raw(load_only=True, required=True, allow_none=False)
+
+    @validates('file_headers')
+    def validate_file(self, value):
+        file_type = value.get('Content-Type')
+        if file_type.lower() not in self.ALLOWED_MIME_TYPES:
+            raise HTTPBadRequest(reason='Ошибка кодировки')

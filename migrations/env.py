@@ -3,11 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+import apps.books.models  # noqa
 from apps.core.database import Base
-from apps.books.models import BookModel
 from config import settings
-
-_ = BookModel()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

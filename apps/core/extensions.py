@@ -20,15 +20,6 @@ engine = create_async_engine(pg_url, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
-# async def pg_context(app):
-#     app['db'] = engine
-#
-#     yield
-#
-#     app['db'].close()
-#     await app['db'].wait_closed()
-
-
 def provide_session(*args, commit_after: bool = False):
     def decorator(func):
         @functools.wraps(func)
