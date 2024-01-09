@@ -43,7 +43,17 @@ Example cURL Command:
 
 Example cURL Command:
  ```bash
- curl -X POST 'http://localhost:8000/books/1/download/'
+ curl -X GET 'http://localhost:8000/books/1/download/'
+ ```
+
+### 5. Read the File by page
+
+- **Method:** GET
+- **Endpoint:** `/books/{book_id}/read/{page_number}/`
+
+Example cURL Command:
+ ```bash
+ curl -X GET 'http://localhost:8000/books/1/read/1/'
  ```
 
 ## Development Setup

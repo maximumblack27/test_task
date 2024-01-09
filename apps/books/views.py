@@ -1,13 +1,15 @@
 import json
 
 from aiohttp import BodyPartReader, web
+from pdf2image import convert_from_path
+from io import BytesIO
 
 from apps.books.managers import BookFileManager, BookManager
 from apps.books.schemas import (BookFileSchema, BookQuerySchema, BookSchema,
                                 CreateBookSchema, LoadingFileSchema,
                                 PageParamsSchema)
-from apps.books.utils import (download_file, extract_query_param, get_book_id,
-                              save_file)
+from apps.books.utils import (download_file, extract_query_param, get_value_from_request,
+                              save_file, read_pdf_from_page)
 from config import settings
 
 book_routes = web.RouteTableDef()
@@ -80,7 +82,7 @@ async def get_book(request: web.Request):
         "genre": String - Genre of the book
     }
     """
-    book_id = get_book_id(request)
+    book_id = get_value_from_request(request, 'book_id')
 
     schema = BookSchema()
     book = await BookManager.get_book(book_id=book_id)
@@ -161,7 +163,7 @@ async def download_book(request: web.Request):
     - Content-Type: multipart/x-mixed-replace
     - File content: The binary content of the book file.
     """
-    book_id = get_book_id(request)
+    book_id = get_value_from_request(request, 'book_id')
 
     schema = BookFileSchema()
     book = await BookFileManager.get_file_name(book_id=book_id)
@@ -178,3 +180,31 @@ async def download_book(request: web.Request):
     await response.prepare(request)
 
     return await download_file(response, file)
+
+
+@book_routes.get('/books/{book_id}/read/{page_number}/')
+async def view_pdf_page(request: web.Request):
+    """
+    Handler for retrieving a specific page of a book in PDF format.
+
+    Path Parameters:
+    - book_id: Integer - Unique identifier for the book.
+    - page_number: Integer - Page number of the book to be retrieved.
+
+    Returns:
+    - Content-Type: image/png
+    - File content: Binary data representing the specified page of the book in PNG format.
+    """
+    book_id = get_value_from_request(request, 'book_id')
+    page_number = get_value_from_request(request, 'page_number')
+
+    schema = BookFileSchema()
+    book = await BookFileManager.get_file_name(book_id=book_id)
+    file = schema.dump(book)
+
+    image_bytes = read_pdf_from_page(file, page_number)
+
+    return web.Response(
+        body=image_bytes,
+        content_type='image/png'
+    )
