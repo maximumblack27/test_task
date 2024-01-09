@@ -3,6 +3,7 @@ version: '3.8'
 
 services:
   postgres:
+    container_name: library_postgres
     image: postgres:12-alpine
     env_file:
       - ./.envs/.local/.postgres
@@ -20,6 +21,7 @@ services:
       start_period: 10s
 
   server:
+    container_name: library_api
     build:
       context: .
       dockerfile: Dockerfile
@@ -28,4 +30,4 @@ services:
     env_file:
       - ./.envs/.local/.base
     ports:
-      - "8080:8080"
+      - "8000:8000"

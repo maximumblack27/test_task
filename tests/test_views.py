@@ -96,7 +96,36 @@ class TestBookViews:
         data = await response.json()
         assert 'book_id' in data
 
-    async def test_create_book_error(self, test_client):
+    @pytest.mark.parametrize('request_data',
+                             [
+                                 ({'name': '',
+                                   'author': 'Test Author',
+                                   'date_published': '01.01.2024'}),
+                                 ({'name': 'Test Book',
+                                   'author': '',
+                                   'date_published': '01.01.2024'}),
+                                 ({'name': 'Test Book',
+                                   'author': 'Test Author',
+                                   'date_published': ''}),
+                                 ({'name': 'Test Book',
+                                   'author': 'Test Author'}),
+                             ])
+    async def test_create_book_error(self, test_client, request_data):
+        file = b'test_content'
+        metadata = request_data
+
+        data = aiohttp.FormData()
+        data.add_field('file',
+                       file,
+                       filename='report.pdf',
+                       content_type='application/pdf')
+        data.add_field('data',
+                       json.dumps(metadata),
+                       content_type='application/json')
+        response = await test_client.post('/books/upload/', data=data)
+        assert response.status == 422
+
+    async def test_create_book_bad_request(self, test_client):
         file = b'test_content'
 
         data = aiohttp.FormData()

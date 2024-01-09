@@ -1,7 +1,6 @@
-from aiohttp.web_exceptions import (HTTPBadRequest, HTTPNotFound,
-                                    HTTPUnprocessableEntity)
+from aiohttp.web_exceptions import HTTPNotFound, HTTPBadRequest
 from marshmallow import (Schema, fields, post_load, pre_dump, validates,
-                         validates_schema)
+                         validates_schema, ValidationError)
 from marshmallow.validate import OneOf
 
 from apps.books.enums import BookColumnEnum
@@ -53,7 +52,7 @@ class BookQuerySchema(Schema):
     def post_load(self, data, *args, **kwargs):
         if data.get('date_start'):
             if not data.get('date_end'):
-                raise HTTPUnprocessableEntity(reason='"date_end" is required with "date_start"')
+                raise ValidationError(message='"date_end" is required with "date_start"')
             data['date_end'] = get_end_date(data.get('date_end'))
 
         return data
@@ -68,7 +67,7 @@ class CreateBookSchema(Schema):
     @validates_schema
     def validate_schema(self, data, *args, **kwargs):
         if not data.get('name') or not data.get('author') or not data.get('date_published'):
-            raise HTTPUnprocessableEntity(reason='"name", "author" and "date_published" must be filled')
+            raise ValidationError(message='"name", "author" and "date_published" must be filled')
 
         return data
 

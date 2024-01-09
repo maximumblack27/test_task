@@ -15,6 +15,30 @@ book_routes = web.RouteTableDef()
 
 @book_routes.post('/books/')
 async def get_book_list(request):
+    """
+    Handler for retrieving a list of books based on specified filters and pagination.
+    Handler is used POST method for exclude errors related on delimiters in a filters.
+
+    Request JSON Payload:
+    {
+        "filter_name": List of strings (optional) - Filter books by name,
+        "filter_author": List of strings (optional) - Filter books by author,
+        "date_start": Date string (optional) - Filter books published on or after this date,
+        "date_end": Date string (optional) - Filter books published on or before this date,
+        "filter_genre": List of strings (optional) - Filter books by genre,
+        "query_string": String (optional) - Full-text search query,
+        "sort": String (optional) - Column to sort the result by (e.g., "name", "author"),
+        "sort_order": String (optional) - Sort order ("asc" or "desc")
+        "page_number": Integer (optional) - Page number for pagination,
+        "page_size": Integer (optional) - Number of items per page (default: settings.MAX_PAGE_SIZE)
+    }
+
+    Returns:
+    {
+        "page": Integer - Current page number,
+        "items": List of dictionaries - Book information,
+    }
+    """
     request_data = await request.read()
 
     args = BookQuerySchema().load(json.loads(request_data)) if request_data else {}
@@ -32,22 +56,76 @@ async def get_book_list(request):
         'items': data
     }
 
-    return web.json_response(data=response_data, status=200)
+    return web.Response(
+        body=json.dumps(response_data, ensure_ascii=False).encode('utf8'),
+        status=200,
+        content_type='application/json'
+    )
 
 
 @book_routes.get('/books/{book_id}/')
 async def get_book(request):
+    """
+    Handler for retrieving details of a specific book.
+
+    Path Parameter:
+    - book_id: Integer - Unique identifier for the book.
+
+    Returns:
+    {
+        "id": Integer - Book ID,
+        "name": String - Book name,
+        "author": String - Author of the book,
+        "published_date": String - Published date of the book (format: DD.MM.YYYY),
+        "genre": String - Genre of the book
+    }
+    """
     book_id = get_book_id(request)
 
     schema = BookSchema()
     book = await BookManager.get_book(book_id=book_id)
     data = schema.dump(book)
 
-    return web.json_response(data=data, status=200)
+    return web.Response(
+        body=json.dumps(data, ensure_ascii=False).encode('utf8'),
+        status=200,
+        content_type='application/json'
+    )
 
 
 @book_routes.post('/books/upload/')
 async def upload_book(request):
+    """
+    Handler for uploading a new book along with associated files.
+
+    Request Format:
+    - Method: POST
+    - Endpoint: '/books/upload/'
+    - Headers:
+        Content-Type: multipart/form-data
+    - Body:
+        - 'file': Binary - The book file to be uploaded.
+        - 'data': JSON - Additional data for creating the book.
+            {
+                "name": String - Book name,
+                "author": String - Author of the book,
+                "genre": String - Genre of the book,
+                "published_date": String - Published date of the book (format: DD.MM.YYYY),
+                ... (other fields for book details)
+            }
+
+    Example cURL Command:
+    ```bash
+    curl -X POST 'http://localhost:8000/books/upload/' \
+         -F 'file=@{path_to_file}' \
+         -F 'data={"name":"book name","author":"book author","date_published":"01.01.2024"}'
+    ```
+
+    Returns:
+    {
+        "book_id": Integer - Unique identifier for the uploaded book.
+    }
+    """
     reader = await request.multipart()
     field: BodyPartReader = await reader.next()
 
@@ -75,6 +153,14 @@ async def upload_book(request):
 
 @book_routes.get('/books/{book_id}/download/')
 async def download_book(request):
+    """
+    Handler for downloading the file associated with a book.
+
+    Returns:
+    - Content-Disposition: attachment;filename={file_name}
+    - Content-Type: multipart/x-mixed-replace
+    - File content: The binary content of the book file.
+    """
     book_id = get_book_id(request)
 
     schema = BookFileSchema()
