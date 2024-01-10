@@ -146,6 +146,14 @@ class TestBookViews:
         response = await test_client.get('/books/1/download/')
         assert response.status == 200
 
+    async def test_download_book_not_found(self, test_client):
+        response = await test_client.get('/books/1/download/')
+        assert response.status == 404
+
     async def test_view_pdf_page(self, test_client, add_books):
         response = await test_client.get('/books/1/read/1/')
         assert response.status == 200
+
+    async def test_view_pdf_page_not_found(self, test_client):
+        response = await test_client.get('/books/1/read/1/')
+        assert response.status == 404
