@@ -28,22 +28,22 @@ book_files = [
     {
         'id': 1,
         'book_id': 1,
-        'file_name': 'filename1',
-        'origin_file_name': 'originfilename1',
+        'file_name': 'filename1.pdf',
+        'origin_file_name': 'originfilename1.pdf',
         'text': None
     },
     {
         'id': 2,
         'book_id': 2,
-        'file_name': 'filename2',
-        'origin_file_name': 'originfilename2',
+        'file_name': 'filename2.pdf',
+        'origin_file_name': 'originfilename2.pdf',
         'text': None
     },
     {
         'id': 3,
         'book_id': 3,
-        'file_name': 'filename3',
-        'origin_file_name': 'originfilename3',
+        'file_name': 'filename3.pdf',
+        'origin_file_name': 'originfilename3.pdf',
         'text': None
     }
 ]

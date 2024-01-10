@@ -25,12 +25,13 @@ async def session():
 def clear_folder():
     yield
     for filename in os.listdir(UPLOAD_FILE_DIRECTORY):
-        file_path = os.path.join(UPLOAD_FILE_DIRECTORY, filename)
-        try:
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        except Exception as e:
-            print(f'Ошибка при удалении файла {file_path}. {e}')
+        if filename != 'filename1.pdf':
+            file_path = os.path.join(UPLOAD_FILE_DIRECTORY, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                print(f'Ошибка при удалении файла {file_path}. {e}')
 
 
 @pytest.fixture(scope="session")
@@ -55,8 +56,16 @@ def migrate_db() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-async def test_client(aiohttp_client):
-    app = await create_app()
+async def app(session):
+    yield await create_app()
+    await session.execute(delete(BookFileModel))
+    await session.execute(delete(BookModel))
+    await session.commit()
+
+
+@pytest.fixture
+async def test_client(aiohttp_client, app):
+    # app = await create_app()
     return await aiohttp_client(app)
 
 

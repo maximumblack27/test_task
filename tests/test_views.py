@@ -3,6 +3,9 @@ from unittest.mock import patch
 
 import aiohttp
 import pytest
+from aiohttp import web
+
+from config.settings import UPLOAD_FILE_DIRECTORY
 
 
 class TestBookViews:
@@ -75,7 +78,10 @@ class TestBookViews:
         response = await test_client.get('/books/invalid_id/')
         assert response.status == 422
 
-    async def test_create_book(self, test_client):
+    @patch('apps.books.utils.save_file')
+    async def test_create_book(self, save_file_mock, test_client):
+        save_file_mock.return_value = 'file_name'
+
         file = b'test_content'
         metadata = {
             'name': 'Test Book',
@@ -136,9 +142,10 @@ class TestBookViews:
         response = await test_client.post('/books/upload/', data=data)
         assert response.status == 400
 
-    @patch('apps.books.utils.download_file')
-    async def test_download_book(self, download_file_mock, test_client):
-        download_file_mock.return_value = b'text data'
-
+    async def test_download_book(self, test_client, add_books):
         response = await test_client.get('/books/1/download/')
+        assert response.status == 200
+
+    async def test_view_pdf_page(self, test_client, add_books):
+        response = await test_client.get('/books/1/read/1/')
         assert response.status == 200
